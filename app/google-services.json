@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "1005208357642",
+    "project_id": "memezone-2004",
+    "storage_bucket": "memezone-2004.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1005208357642:android:d49b562f82b8060388c8f3",
+        "android_client_info": {
+          "package_name": "com.patel.memezone"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1005208357642-eh16loc6bg8hi76vj7cjc8fo3sgd9vn2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCh1EBc54se1bXLNEwBLJXawZoeXK9xLj0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1005208357642-eh16loc6bg8hi76vj7cjc8fo3sgd9vn2.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

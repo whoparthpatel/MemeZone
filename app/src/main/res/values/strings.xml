@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Meme Bhandar</string>
+    <string name="gotosign_up">Don\'t have account?<font color='#c3b59b'> create a new account</font></string>
+    <string name="gotolog_in">Already have a account?<font color='#c3b59b'> Login</font></string>
+    <string name="back_press">&#11148;</string>
+
+</resources>
