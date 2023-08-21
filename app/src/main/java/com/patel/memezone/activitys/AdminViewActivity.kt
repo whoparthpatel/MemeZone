@@ -2,6 +2,7 @@ package com.patel.memezone.activitys
 
 import android.app.Activity
 import android.app.AlertDialog
+import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
@@ -28,6 +29,7 @@ import java.io.FileOutputStream
 
 class AdminViewActivity : BaseActivity<ActivityAdminViewBinding>() {
     private lateinit var imagesReference: DatabaseReference
+    private lateinit var databaseReference : DatabaseReference
     private lateinit var imageUrls: ArrayList<String>
     private var currentImageIndex = 0
     private var imageUrlAtIndex : String? = null
@@ -37,7 +39,7 @@ class AdminViewActivity : BaseActivity<ActivityAdminViewBinding>() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val userId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
-        val databaseReference = FirebaseDatabase.getInstance().reference
+        databaseReference = FirebaseDatabase.getInstance().reference
         imagesReference = databaseReference.child("users").child(userId).child("images")
 
         imageUrls = ArrayList()
@@ -62,7 +64,7 @@ class AdminViewActivity : BaseActivity<ActivityAdminViewBinding>() {
             shareImage()
         }
         binding!!.deleteImg.setOnClickListener{
-
+            showDeleteConfirmationDialog(act,imageUrlAtIndex.toString())
         }
         val resultLauncher =
             registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -105,7 +107,6 @@ class AdminViewActivity : BaseActivity<ActivityAdminViewBinding>() {
 
     private fun saveImageMetadataToDatabase(imageUrl: String) {
         val userId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
-        val databaseReference = FirebaseDatabase.getInstance().reference
         val imageKey = databaseReference.child("images").push().key
         if (imageKey != null) {
             val imageMetadata = mapOf(
@@ -131,7 +132,9 @@ class AdminViewActivity : BaseActivity<ActivityAdminViewBinding>() {
             override fun onDataChange(snapshot: DataSnapshot) {
                 if (snapshot.exists()) {
                     for (imageSnapshot in snapshot.children) {
+                        val imageID = imageSnapshot.child("images").value.toString()
                         val imageUrl = imageSnapshot.child("imageUrl").value.toString()
+                        Log.d("IMAGE IDDD", imageID)
                         imageUrls.add(imageUrl)
                     }
                     if (imageUrls.isNotEmpty()) {
@@ -191,5 +194,92 @@ class AdminViewActivity : BaseActivity<ActivityAdminViewBinding>() {
         val alertDialog = builder.create()
         alertDialog.show()
     }
+    private fun showDeleteConfirmationDialog(context: Context, imageUrlToDelete: String) {
+        val alertDialogBuilder = AlertDialog.Builder(context)
+        alertDialogBuilder.setTitle("Delete Manager")
+        alertDialogBuilder.setMessage("Are you sure you want to delete this image ?")
+        alertDialogBuilder.setPositiveButton("OK") { dialog, _ ->
+            // User clicked OK, proceed with deletion
+            deleteImageByUrl(imageUrlToDelete)
+            retrieveImagesAndDisplay()
+            displayImage(this.currentImageIndex)
+            dialog.dismiss()
+        }
+        alertDialogBuilder.setNegativeButton("Cancel") { dialog, _ ->
+            // User clicked Cancel, do nothing
+            dialog.dismiss()
+        }
+        val alertDialog = alertDialogBuilder.create()
+        alertDialog.show()
+    }
 
+//    private fun deleteImageByUrl(imageUrl: String) {
+//        databaseReference.child("users").addListenerForSingleValueEvent(object : ValueEventListener {
+//            override fun onDataChange(snapshot: DataSnapshot) {
+//                for (userSnapshot in snapshot.children) {
+//                    val imagesSnapshot = userSnapshot.child("images")
+//                    for (imageSnapshot in imagesSnapshot.children) {
+//                        val imageUrl = imageSnapshot.child("imageUrl").getValue(String::class.java)
+//                        if (imageUrl == imageUrlAtIndex) {
+//                            imageSnapshot.ref.removeValue()
+//                                .addOnCompleteListener { task ->
+//                                    if (task.isSuccessful) {
+//                                        Toast.makeText(act,"Delete Successfully",Toast.LENGTH_SHORT).show()
+//                                    } else {
+//                                        Toast.makeText(act,"Delete Failed Please Try Again...",Toast.LENGTH_SHORT).show()
+//                                    }
+//                                }
+//                        }
+//                    }
+//                }
+//            }
+//            override fun onCancelled(error: DatabaseError) {
+//                // Handle database error
+//            }
+//        })
+//    }
+
+    private fun deleteImageByUrl(imageUrl: String) {
+        databaseReference.child("users").addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                for (userSnapshot in snapshot.children) {
+                    val imagesSnapshot = userSnapshot.child("images")
+                    for (imageSnapshot in imagesSnapshot.children) {
+                        val imageUrl = imageSnapshot.child("imageUrl").getValue(String::class.java)
+                        if (imageUrl == imageUrl) {
+                            val imageKey = imageSnapshot.key
+                            if (imageKey != null) {
+                                // Delete from Firebase Storage
+                                val storageReference = FirebaseStorage.getInstance().getReference("images/$imageKey.jpg")
+                                storageReference.delete()
+                                    .addOnSuccessListener {
+                                        Toast.makeText(act,"SUCCESFULLY IMAGE DELETE TO FIREBASE STORAGE",Toast.LENGTH_SHORT).show()
+                                    }
+                                    .addOnFailureListener {
+                                        Toast.makeText(act,"FAIELD IMAGE DELETE TO FIREBASE STORAGE",Toast.LENGTH_SHORT).show()
+                                        // Handle Storage deletion failure
+                                    }
+
+                                // Delete image metadata from Realtime Database
+                                imageSnapshot.ref.removeValue()
+                                    .addOnSuccessListener {
+                                        Toast.makeText(act,"SUCCESFULLY IMAGE DELETE TO FIREBASE REAL TIME DATA BASE",Toast.LENGTH_SHORT).show()
+                                        // Image metadata deleted from Database
+                                    }
+                                    .addOnFailureListener {
+                                        Toast.makeText(act,"FAIELD IMAGE DELETE TO FIREBASE REAL TIME DATA BASE",Toast.LENGTH_SHORT).show()
+                                        // Handle Database deletion failure
+                                    }
+
+                                break
+                            }
+                        }
+                    }
+                }
+            }
+            override fun onCancelled(error: DatabaseError) {
+                // Handle database error
+            }
+        })
+    }
 }
