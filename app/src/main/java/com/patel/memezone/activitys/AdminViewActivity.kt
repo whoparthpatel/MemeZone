@@ -9,10 +9,16 @@ import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
+import android.view.View
+import android.view.ViewTreeObserver
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.FileProvider
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.DataSource
+import com.bumptech.glide.load.engine.GlideException
+import com.bumptech.glide.request.RequestListener
+import com.bumptech.glide.request.RequestOptions
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -26,6 +32,7 @@ import com.patel.memezone.R
 import com.patel.memezone.databinding.ActivityAdminViewBinding
 import java.io.File
 import java.io.FileOutputStream
+import android.graphics.drawable.Drawable as Drawable1
 
 class AdminViewActivity : BaseActivity<ActivityAdminViewBinding>() {
     private lateinit var imagesReference: DatabaseReference
@@ -50,7 +57,7 @@ class AdminViewActivity : BaseActivity<ActivityAdminViewBinding>() {
         binding!!.customeToolbar.title.text = "Admin Pannel"
         binding!!.customeToolbar.backBtn.visibility = android.view.View.GONE
         binding!!.customeToolbar.logoutBtn.setOnClickListener {
-            auth.signOut()
+            logout()
             changeAct(act,LoginActivity::class.java)
         }
         retrieveImagesAndDisplay()
@@ -132,21 +139,33 @@ class AdminViewActivity : BaseActivity<ActivityAdminViewBinding>() {
             override fun onDataChange(snapshot: DataSnapshot) {
                 if (snapshot.exists()) {
                     for (imageSnapshot in snapshot.children) {
-                        val imageID = imageSnapshot.child("images").value.toString()
-                        val imageUrl = imageSnapshot.child("imageUrl").value.toString()
-                        Log.d("IMAGE IDDD", imageID)
-                        imageUrls.add(imageUrl)
+                        val imageID = imageSnapshot.key // This gets the image's unique key
+                        val imageUrl = imageSnapshot.child("imageUrl").getValue(String::class.java)
+                        imageID?.let { Log.d("IMAGE IDDD", it) }
+                        if (!imageUrl.isNullOrEmpty()) {
+                            imageUrls.add(imageUrl)
+                        }
                     }
-                    if (imageUrls.isNotEmpty()) {
-                        imageUrlAtIndex = imageUrls[currentImageIndex]
-                        displayImage(currentImageIndex)
+                    if (imageUrls.isEmpty()) {
+                        // Set a default image URL when no image URLs are available
+                        val defaultImageUrl = "https://www.linkpicture.com/q/noresultfound-removebg.png"
+                        imageUrls.add(defaultImageUrl)
                     }
+                    imageUrlAtIndex = imageUrls[currentImageIndex]
+                    displayImage(currentImageIndex)
+                } else {
+                    // Set a default image URL when no data is available
+                    val defaultImageUrl = "https://www.linkpicture.com/q/noresultfound-removebg.png"
+                    imageUrls.add(defaultImageUrl)
+                    imageUrlAtIndex = imageUrls[currentImageIndex]
+                    displayImage(currentImageIndex)
                 }
             }
             override fun onCancelled(error: DatabaseError) {
                 // Handle database error
             }
         })
+
     }
 
     private fun displayImage(index: Int) {
@@ -158,6 +177,16 @@ class AdminViewActivity : BaseActivity<ActivityAdminViewBinding>() {
             url = imageUrlAtIndex.also { imageUrlAtIndex = url }.toString()
 //            imageUrlAtIndex?.let { Log.d("CURRENT INDEX", it) }
             currentImageIndex = index
+            binding!!.upImageSave.viewTreeObserver.addOnPreDrawListener(object : ViewTreeObserver.OnPreDrawListener {
+                override fun onPreDraw(): Boolean {
+                    if (binding!!.upImageSave.drawable != null) {
+                        binding!!.customeLoader.visibility = View.GONE
+                        binding!!.upImageSave.visibility = View.VISIBLE
+                        binding!!.upImageSave.viewTreeObserver.removeOnPreDrawListener(this)
+                    }
+                    return true
+                }
+            })
         }
     }
 
@@ -259,7 +288,6 @@ class AdminViewActivity : BaseActivity<ActivityAdminViewBinding>() {
                                         Toast.makeText(act,"FAIELD IMAGE DELETE TO FIREBASE STORAGE",Toast.LENGTH_SHORT).show()
                                         // Handle Storage deletion failure
                                     }
-
                                 // Delete image metadata from Realtime Database
                                 imageSnapshot.ref.removeValue()
                                     .addOnSuccessListener {

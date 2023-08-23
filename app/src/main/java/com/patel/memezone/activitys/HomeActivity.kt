@@ -17,7 +17,7 @@ class HomeActivity : BaseActivity<ActivityHomeBinding>() {
         binding!!.customeToolbar.title.text = "Meme Bhandar"
         binding!!.customeToolbar.backBtn.visibility = android.view.View.GONE
         binding!!.customeToolbar.logoutBtn.setOnClickListener {
-            auth.signOut()
+            logout()
             changeAct(act,LoginActivity::class.java)
         }
     }

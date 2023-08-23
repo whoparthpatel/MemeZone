@@ -45,4 +45,12 @@ abstract class BaseActivity<T : ViewDataBinding> : AppCompatActivity() {
             context.finish()
         }
     }
+    fun logout(){
+        auth.signOut()
+        val sharedPref = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+        val editor = sharedPref.edit()
+        editor.putBoolean("isLoggedIn", false)
+        editor.apply()
+        editor.clear()
+    }
 }

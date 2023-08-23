@@ -42,11 +42,20 @@
         android:layout_width="@dimen/_250sdp"
         android:layout_height="@dimen/_250sdp"
         android:layout_marginTop="164dp"
+        android:src="@drawable/noresult"
         app:layout_constraintHorizontal_bias="0.496"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        android:visibility="gone"
         tools:ignore="ContentDescription" />
+
+
+    <include
+        android:id="@+id/custome_loader"
+        layout="@layout/loading"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/next_img"

@@ -2,6 +2,7 @@ package com.patel.memezone.activitys
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
+import android.content.Context
 import android.os.Bundle
 import android.os.Handler
 import android.util.Log
@@ -29,7 +30,22 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         customPopup = findViewById(R.id.custome_popup)
-        init()
+        val sharedPref = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+        val isLoggedIn = sharedPref.getBoolean("isLoggedIn", false)
+        val isAdminFirst = sharedPref.getString("isAdmin1","")
+        val isAdminSecond = sharedPref.getString("isAdmin2","")
+        if (isLoggedIn) {
+            // User is logged in, proceed with app logic
+            if (isAdminFirst == isUserAdminFirst || isAdminSecond == isUserAdminSecond) {
+                changeAct(act,AdminViewActivity::class.java)
+            } else {
+                changeAct(act,HomeActivity::class.java)
+            }
+        }
+        else {
+            init()
+            // User is not logged in, maybe show login screen
+        }
     }
     @SuppressLint("SuspiciousIndentation")
     fun init() {
@@ -80,6 +96,9 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>() {
                 }
             }
     }
+
+    // To check the login status in your activity/fragment
+
     private fun validd(): Boolean {
         if (binding!!.emailEdt.text!!.isEmpty()) {
             binding!!.emailEdt.error = "Email is required"
@@ -129,6 +148,12 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>() {
                 auth.signInWithEmailAndPassword(binding!!.emailEdt.text.toString(), binding!!.passwordEdt.text.toString())
                     .addOnCompleteListener(this) { task ->
                         if (task.isSuccessful) {
+                            val sharedPref = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+                            val editor = sharedPref.edit()
+                            editor.putBoolean("isLoggedIn", true)
+                            editor.putString("isAdmin1", isUserAdminFirst)
+                            editor.putString("isAdmin2", isUserAdminSecond)
+                            editor.apply()
                             if(isUserAdminFirst == binding!!.emailEdt.text.toString() || isUserAdminSecond == binding!!.emailEdt.text.toString()) {
                                 changeAct(act,AdminViewActivity::class.java)
                                 Toast.makeText(act,"ADMIN LOG IN",Toast.LENGTH_SHORT).show()
