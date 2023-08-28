@@ -91,6 +91,8 @@ class AdminViewActivity : BaseActivity<ActivityAdminViewBinding>() {
     }
 
     private fun uploadImageToFirebaseStorage(imageUri: Uri) {
+        binding!!.upImageSave.visibility = View.GONE
+        binding!!.customeLoader.visibility = View.VISIBLE
         val storageRef = FirebaseStorage.getInstance().reference
         val imageRef = storageRef.child("images/${imageUri.lastPathSegment}")
 
@@ -126,6 +128,8 @@ class AdminViewActivity : BaseActivity<ActivityAdminViewBinding>() {
             databaseReference.updateChildren(imageUpdates)
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful) {
+                        binding!!.customeLoader.visibility = View.GONE
+                        binding!!.upImageSave.visibility = View.VISIBLE
                         dialog("upload Manager","Image Upload Successfully.")
                     } else {
                         dialog("upload Manager","Image Upload Failure.")
@@ -218,7 +222,7 @@ class AdminViewActivity : BaseActivity<ActivityAdminViewBinding>() {
         builder.setCancelable(false)
         builder.setNegativeButton("OK") {
                 dialog, _ -> dialog.cancel()
-            changeAct(act,LoginActivity::class.java)
+//            changeAct(act,LoginActivity::class.java)
         }
         val alertDialog = builder.create()
         alertDialog.show()
@@ -230,7 +234,6 @@ class AdminViewActivity : BaseActivity<ActivityAdminViewBinding>() {
         alertDialogBuilder.setPositiveButton("OK") { dialog, _ ->
             // User clicked OK, proceed with deletion
             deleteImageByUrl(imageUrlToDelete)
-            retrieveImagesAndDisplay()
             displayImage(this.currentImageIndex)
             dialog.dismiss()
         }
@@ -241,7 +244,6 @@ class AdminViewActivity : BaseActivity<ActivityAdminViewBinding>() {
         val alertDialog = alertDialogBuilder.create()
         alertDialog.show()
     }
-
 //    private fun deleteImageByUrl(imageUrl: String) {
 //        databaseReference.child("users").addListenerForSingleValueEvent(object : ValueEventListener {
 //            override fun onDataChange(snapshot: DataSnapshot) {
@@ -298,7 +300,6 @@ class AdminViewActivity : BaseActivity<ActivityAdminViewBinding>() {
                                         Toast.makeText(act,"FAIELD IMAGE DELETE TO FIREBASE REAL TIME DATA BASE",Toast.LENGTH_SHORT).show()
                                         // Handle Database deletion failure
                                     }
-
                                 break
                             }
                         }
