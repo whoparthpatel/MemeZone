@@ -54,6 +54,7 @@ class AdminViewActivity : BaseActivity<ActivityAdminViewBinding>() {
     }
     fun init() {
         retrieveImagesAndDisplay()
+        Log.d("CURRENT INDEX", currentImageIndex.toString())
         binding!!.customeToolbar.title.text = "Admin Pannel"
         binding!!.customeToolbar.backBtn.visibility = android.view.View.GONE
         binding!!.customeToolbar.logoutBtn.setOnClickListener {
@@ -95,7 +96,6 @@ class AdminViewActivity : BaseActivity<ActivityAdminViewBinding>() {
         binding!!.customeLoader.visibility = View.VISIBLE
         val storageRef = FirebaseStorage.getInstance().reference
         val imageRef = storageRef.child("images/${imageUri.lastPathSegment}")
-
         val uploadTask = imageRef.putFile(imageUri)
         uploadTask.continueWithTask { task ->
             if (!task.isSuccessful) {
@@ -139,9 +139,11 @@ class AdminViewActivity : BaseActivity<ActivityAdminViewBinding>() {
     }
 
     private fun retrieveImagesAndDisplay() {
+        Log.d("CURRENT INDEX", currentImageIndex.toString())
         imagesReference.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 if (snapshot.exists()) {
+                    imageUrls.clear()
                     for (imageSnapshot in snapshot.children) {
                         val imageID = imageSnapshot.key // This gets the image's unique key
                         val imageUrl = imageSnapshot.child("imageUrl").getValue(String::class.java)
@@ -156,12 +158,14 @@ class AdminViewActivity : BaseActivity<ActivityAdminViewBinding>() {
                         imageUrls.add(defaultImageUrl)
                     }
                     imageUrlAtIndex = imageUrls[currentImageIndex]
+                    Log.d("IMAGE URLS",imageUrlAtIndex.toString())
                     displayImage(currentImageIndex)
                 } else {
                     // Set a default image URL when no data is available
                     val defaultImageUrl = "https://www.linkpicture.com/q/noresultfound-removebg.png"
                     imageUrls.add(defaultImageUrl)
                     imageUrlAtIndex = imageUrls[currentImageIndex]
+                    Log.d("IMAGE URLS",imageUrlAtIndex.toString())
                     displayImage(currentImageIndex)
                 }
             }
@@ -174,11 +178,13 @@ class AdminViewActivity : BaseActivity<ActivityAdminViewBinding>() {
 
     private fun displayImage(index: Int) {
         if (index in 0 until imageUrls.size) {
+            binding!!.customeLoader.visibility = View.VISIBLE
             Glide.with(this)
                 .load(imageUrls[index])
                 .into(binding!!.upImageSave)
             var url = imageUrls[index]
             url = imageUrlAtIndex.also { imageUrlAtIndex = url }.toString()
+            Log.d("IMAGE URLS",imageUrlAtIndex.toString())
 //            imageUrlAtIndex?.let { Log.d("CURRENT INDEX", it) }
             currentImageIndex = index
             binding!!.upImageSave.viewTreeObserver.addOnPreDrawListener(object : ViewTreeObserver.OnPreDrawListener {
@@ -195,14 +201,25 @@ class AdminViewActivity : BaseActivity<ActivityAdminViewBinding>() {
     }
 
     private fun showNextImage() {
-        if (currentImageIndex < imageUrls.size - 1) {
-            displayImage(currentImageIndex + 1)
+        if(currentImageIndex == imageUrls.size-1)
+        {
+            currentImageIndex = -1
         }
+        if (currentImageIndex <= imageUrls.size - 1) {
+            displayImage(currentImageIndex + 1)
+
+            Log.d("CURRENT INDEX", currentImageIndex.toString())
+            binding!!.upImage.text = currentImageIndex.toString()
+
+        }
+
     }
 
     private fun showPreviousImage() {
-        if (currentImageIndex > 0) {
+        if (currentImageIndex >= 0) {
             displayImage(currentImageIndex - 1)
+            Log.d("CURRENT INDEX", currentImageIndex.toString())
+            binding!!.upImage.text = currentImageIndex.toString()
         }
     }
 
@@ -222,6 +239,7 @@ class AdminViewActivity : BaseActivity<ActivityAdminViewBinding>() {
         builder.setCancelable(false)
         builder.setNegativeButton("OK") {
                 dialog, _ -> dialog.cancel()
+                recreate()
 //            changeAct(act,LoginActivity::class.java)
         }
         val alertDialog = builder.create()
@@ -236,6 +254,8 @@ class AdminViewActivity : BaseActivity<ActivityAdminViewBinding>() {
             deleteImageByUrl(imageUrlToDelete)
             displayImage(this.currentImageIndex)
             dialog.dismiss()
+            recreate()
+//            currentImageIndex -= 1
         }
         alertDialogBuilder.setNegativeButton("Cancel") { dialog, _ ->
             // User clicked Cancel, do nothing
@@ -244,6 +264,11 @@ class AdminViewActivity : BaseActivity<ActivityAdminViewBinding>() {
         val alertDialog = alertDialogBuilder.create()
         alertDialog.show()
     }
+
+
+
+
+
 //    private fun deleteImageByUrl(imageUrl: String) {
 //        databaseReference.child("users").addListenerForSingleValueEvent(object : ValueEventListener {
 //            override fun onDataChange(snapshot: DataSnapshot) {
@@ -270,42 +295,31 @@ class AdminViewActivity : BaseActivity<ActivityAdminViewBinding>() {
 //        })
 //    }
 
-    private fun deleteImageByUrl(imageUrl: String) {
+    private fun deleteImageByUrl(x: String) {
+        Log.d("DELETED URL'S",x.toString())
         databaseReference.child("users").addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 for (userSnapshot in snapshot.children) {
                     val imagesSnapshot = userSnapshot.child("images")
                     for (imageSnapshot in imagesSnapshot.children) {
                         val imageUrl = imageSnapshot.child("imageUrl").getValue(String::class.java)
-                        if (imageUrl == imageUrl) {
-                            val imageKey = imageSnapshot.key
-                            if (imageKey != null) {
-                                // Delete from Firebase Storage
-                                val storageReference = FirebaseStorage.getInstance().getReference("images/$imageKey.jpg")
-                                storageReference.delete()
-                                    .addOnSuccessListener {
-                                        Toast.makeText(act,"SUCCESFULLY IMAGE DELETE TO FIREBASE STORAGE",Toast.LENGTH_SHORT).show()
-                                    }
-                                    .addOnFailureListener {
-                                        Toast.makeText(act,"FAIELD IMAGE DELETE TO FIREBASE STORAGE",Toast.LENGTH_SHORT).show()
-                                        // Handle Storage deletion failure
-                                    }
-                                // Delete image metadata from Realtime Database
-                                imageSnapshot.ref.removeValue()
-                                    .addOnSuccessListener {
-                                        Toast.makeText(act,"SUCCESFULLY IMAGE DELETE TO FIREBASE REAL TIME DATA BASE",Toast.LENGTH_SHORT).show()
-                                        // Image metadata deleted from Database
-                                    }
-                                    .addOnFailureListener {
-                                        Toast.makeText(act,"FAIELD IMAGE DELETE TO FIREBASE REAL TIME DATA BASE",Toast.LENGTH_SHORT).show()
-                                        // Handle Database deletion failure
-                                    }
-                                break
-                            }
+                        if (imageUrl == x) { // Compare with the image URL to delete
+                            imageSnapshot.ref.removeValue()
+                                .addOnSuccessListener {
+                                    Toast.makeText(act, "Successfully deleted image from Firebase Realtime Database", Toast.LENGTH_SHORT).show()
+                                    recreate()
+                                    // Image metadata deleted from Database
+                                }
+                                .addOnFailureListener {
+                                    Toast.makeText(act, "Failed to delete image from Firebase Realtime Database", Toast.LENGTH_SHORT).show()
+                                    // Handle Database deletion failure
+                                }
+                            return // Exit the loop once the image is found and deleted
                         }
                     }
                 }
             }
+
             override fun onCancelled(error: DatabaseError) {
                 // Handle database error
             }
