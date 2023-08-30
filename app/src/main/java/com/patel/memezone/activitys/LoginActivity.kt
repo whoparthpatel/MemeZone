@@ -3,6 +3,7 @@ package com.patel.memezone.activitys
 import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.util.Log
@@ -31,20 +32,24 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>() {
         super.onCreate(savedInstanceState)
         customPopup = findViewById(R.id.custome_popup)
         val sharedPref = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-        val isLoggedIn = sharedPref.getBoolean("isLoggedIn", false)
-        val isAdminFirst = sharedPref.getString("isAdmin1","")
-        val isAdminSecond = sharedPref.getString("isAdmin2","")
-        if (isLoggedIn) {
-            // User is logged in, proceed with app logic
-            if (isAdminFirst == isUserAdminFirst || isAdminSecond == isUserAdminSecond) {
-                changeAct(act,AdminViewActivity::class.java)
-            } else {
-                changeAct(act,HomeActivity::class.java)
-            }
-        }
-        else {
+        val isAdmin = sharedPref.getBoolean("isAdmin", false)
+        val isUser = sharedPref.getBoolean("isUser", false)
+        val Admin = sharedPref.getInt("Admin", 0)
+        val User = sharedPref.getInt("User", 0)
+
+
+        if (isAdmin) {
+            val i = Intent(this@LoginActivity, AdminViewActivity::class.java)
+//            i.putExtra("Admin", Admin)
+            startActivity(i)
+//            changeAct(act,AdminViewActivity::class.java)
+        } else if (isUser) {
+            val i = Intent(this@LoginActivity, AdminViewActivity::class.java)
+//            i.putExtra("Admin", User)
+            startActivity(i)
+//            changeAct(act,AdminViewActivity::class.java)
+        } else {
             init()
-            // User is not logged in, maybe show login screen
         }
     }
     @SuppressLint("SuspiciousIndentation")
@@ -69,7 +74,7 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>() {
             }
             binding!!.customePopup.changePassword.setOnClickListener {
                 if (validdChangePasswords()){
-                    Toast.makeText(act,"TOUC",Toast.LENGTH_SHORT).show()
+//                    Toast.makeText(act,"TOUC",Toast.LENGTH_SHORT).show()
                     if (binding!!.customePopup.changePassEmailedt.text.toString().isNotEmpty()) {
                         auth.sendPasswordResetEmail(binding!!.customePopup.changePassEmailedt.text.toString())
                             .addOnCompleteListener { task ->
@@ -150,14 +155,14 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>() {
                         if (task.isSuccessful) {
                             val sharedPref = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
                             val editor = sharedPref.edit()
-                            editor.putBoolean("isLoggedIn", true)
-                            editor.putString("isAdmin1", isUserAdminFirst)
-                            editor.putString("isAdmin2", isUserAdminSecond)
-                            editor.apply()
                             if(isUserAdminFirst == binding!!.emailEdt.text.toString() || isUserAdminSecond == binding!!.emailEdt.text.toString()) {
                                 changeAct(act,AdminViewActivity::class.java)
+                                editor.putBoolean("isAdmin", true)
+                                editor.putInt("Admin",1)
+                                editor.apply()
                                 Toast.makeText(act,"ADMIN LOG IN",Toast.LENGTH_SHORT).show()
                             } else {
+
                                 val userId = auth.currentUser?.uid ?: ""
                                 val userReference =
                                     FirebaseDatabase.getInstance().reference.child("users")
@@ -181,7 +186,13 @@ class LoginActivity : BaseActivity<ActivityLoginBinding>() {
                                     }
                                 })
                                 // Login successful, navigate to the next activity
-                                changeAct(act, HomeActivity::class.java)
+//                                changeAct(act, AdminViewActivity::class.java)
+                                val i = Intent(this@LoginActivity, AdminViewActivity::class.java)
+                                editor.putBoolean("isUser", true)
+                                editor.putInt("User",2)
+                                editor.apply()
+                                startActivity(i)
+
                                 Log.d("SUCCESSFULL", "TRUE")
                             }
                         } else {

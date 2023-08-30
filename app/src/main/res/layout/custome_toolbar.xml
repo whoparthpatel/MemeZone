@@ -37,6 +37,7 @@
         android:layout_width="@dimen/_22sdp"
         android:layout_height="@dimen/_25sdp"
         android:src="@drawable/baseline_logout_24"
+        android:layout_marginTop="@dimen/_6sdp"
         android:layout_marginHorizontal="@dimen/_16sdp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"

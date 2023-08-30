@@ -49,7 +49,10 @@ abstract class BaseActivity<T : ViewDataBinding> : AppCompatActivity() {
         auth.signOut()
         val sharedPref = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
         val editor = sharedPref.edit()
-        editor.putBoolean("isLoggedIn", false)
+        editor.putBoolean("isAdmin", false)
+        editor.putBoolean("isUser", false)
+        editor.putInt("Admin",0)
+        editor.putInt("User",0)
         editor.apply()
         editor.clear()
     }

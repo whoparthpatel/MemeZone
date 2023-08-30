@@ -47,23 +47,36 @@ class AdminViewActivity : BaseActivity<ActivityAdminViewBinding>() {
     }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val sharedPref = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+        val Admin = sharedPref.getInt("Admin", 0)
+        val User = sharedPref.getInt("User", 0)
+
+
+        if (User == 2) {
+            binding!!.customeToolbar.title.text = "Meme Bhandar"
+            binding!!.deleteImg.visibility = View.GONE
+            binding!!.upImage.visibility = View.GONE
+        } else {
+            binding!!.customeToolbar.title.text = "Admin Pannel"
+            binding!!.deleteImg.visibility = View.VISIBLE
+            binding!!.upImage.visibility = View.VISIBLE
+        }
+
         val userId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
         databaseReference = FirebaseDatabase.getInstance().reference
         imagesReference = databaseReference.child("users").child(userId).child("images")
-
         imageUrls = ArrayList()
         init()
     }
     fun init() {
         retrieveImagesAndDisplay()
         Log.d("CURRENT INDEX", currentImageIndex.toString())
-        binding!!.customeToolbar.title.text = "Admin Pannel"
         binding!!.customeToolbar.backBtn.visibility = android.view.View.GONE
         binding!!.customeToolbar.logoutBtn.setOnClickListener {
             logout()
             changeAct(act,LoginActivity::class.java)
         }
-        retrieveImagesAndDisplay()
         binding!!.nextImg.setOnClickListener {
             showNextImage()
         }
@@ -95,7 +108,6 @@ class AdminViewActivity : BaseActivity<ActivityAdminViewBinding>() {
             downloadImage(imageUrlAtIndex.toString())
         }
     }
-
     private fun uploadImageToFirebaseStorage(imageUri: Uri) {
         binding!!.upImageSave.visibility = View.GONE
         binding!!.customeLoader.visibility = View.VISIBLE
@@ -164,7 +176,6 @@ class AdminViewActivity : BaseActivity<ActivityAdminViewBinding>() {
                 }
         }
     }
-
     private fun retrieveImagesAndDisplay() {
         Log.d("CURRENT INDEX", currentImageIndex.toString())
         imagesReference.addListenerForSingleValueEvent(object : ValueEventListener {
@@ -202,7 +213,6 @@ class AdminViewActivity : BaseActivity<ActivityAdminViewBinding>() {
         })
 
     }
-
     private fun displayImage(index: Int) {
         if (index in 0 until imageUrls.size) {
             binding!!.customeLoader.visibility = View.VISIBLE
@@ -226,7 +236,6 @@ class AdminViewActivity : BaseActivity<ActivityAdminViewBinding>() {
             })
         }
     }
-
     private fun showNextImage() {
         if(currentImageIndex == imageUrls.size-1)
         {
@@ -239,7 +248,6 @@ class AdminViewActivity : BaseActivity<ActivityAdminViewBinding>() {
         }
 
     }
-
     private fun showPreviousImage() {
         if (currentImageIndex >= 0) {
             displayImage(currentImageIndex - 1)
@@ -247,7 +255,6 @@ class AdminViewActivity : BaseActivity<ActivityAdminViewBinding>() {
 //            binding!!.upImage.text = currentImageIndex.toString()
         }
     }
-
     private fun shareImage() {
         val sendIntent = Intent()
         sendIntent.action = Intent.ACTION_SEND
@@ -256,8 +263,7 @@ class AdminViewActivity : BaseActivity<ActivityAdminViewBinding>() {
         val shareIntent = Intent.createChooser(sendIntent, null)
         startActivity(shareIntent)
     }
-
-    fun dialog(tit : String , reason : String) {
+    private fun dialog(tit : String, reason : String) {
         val builder = AlertDialog.Builder(this)
         builder.setMessage(reason)
         builder.setTitle(tit)
@@ -288,37 +294,6 @@ class AdminViewActivity : BaseActivity<ActivityAdminViewBinding>() {
         val alertDialog = alertDialogBuilder.create()
         alertDialog.show()
     }
-
-
-
-
-
-//    private fun deleteImageByUrl(imageUrl: String) {
-//        databaseReference.child("users").addListenerForSingleValueEvent(object : ValueEventListener {
-//            override fun onDataChange(snapshot: DataSnapshot) {
-//                for (userSnapshot in snapshot.children) {
-//                    val imagesSnapshot = userSnapshot.child("images")
-//                    for (imageSnapshot in imagesSnapshot.children) {
-//                        val imageUrl = imageSnapshot.child("imageUrl").getValue(String::class.java)
-//                        if (imageUrl == imageUrlAtIndex) {
-//                            imageSnapshot.ref.removeValue()
-//                                .addOnCompleteListener { task ->
-//                                    if (task.isSuccessful) {
-//                                        Toast.makeText(act,"Delete Successfully",Toast.LENGTH_SHORT).show()
-//                                    } else {
-//                                        Toast.makeText(act,"Delete Failed Please Try Again...",Toast.LENGTH_SHORT).show()
-//                                    }
-//                                }
-//                        }
-//                    }
-//                }
-//            }
-//            override fun onCancelled(error: DatabaseError) {
-//                // Handle database error
-//            }
-//        })
-//    }
-
     private fun deleteImageByUrl(x: String) {
         Log.d("DELETED URL'S",x.toString())
         databaseReference.child("users").addListenerForSingleValueEvent(object : ValueEventListener {

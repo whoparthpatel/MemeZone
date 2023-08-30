@@ -7,13 +7,12 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import android.os.IBinder
 import android.widget.RemoteViews
 import androidx.core.app.NotificationCompat
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.patel.memezone.R
-import com.patel.memezone.activitys.HomeActivity
+import com.patel.memezone.activitys.AdminViewActivity
 
 @SuppressLint("MissingFirebaseInstanceTokenRefresh")
 
@@ -37,7 +36,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService(){
             return remoteViews
         }
         fun generateNotification(title : String, message : String) {
-            val intent = Intent(this,HomeActivity::class.java)
+            val intent = Intent(this,AdminViewActivity::class.java)
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
 
             val pandingIntent = PendingIntent.getActivity(

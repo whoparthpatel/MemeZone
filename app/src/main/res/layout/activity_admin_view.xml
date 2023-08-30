@@ -3,6 +3,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
+
 <androidx.constraintlayout.widget.ConstraintLayout
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -67,7 +68,6 @@
 
     <include
         android:id="@+id/custome_loader"
-        android:visibility="gone"
         layout="@layout/loading"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

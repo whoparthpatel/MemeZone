@@ -53,10 +53,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".activitys.HomeActivity"
-            android:exported="false" />
-
         <service
             android:name=".classes.MyFirebaseMessagingService"
             android:exported="false"
