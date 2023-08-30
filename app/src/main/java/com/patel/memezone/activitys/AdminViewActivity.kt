@@ -2,11 +2,13 @@ package com.patel.memezone.activitys
 
 import android.app.Activity
 import android.app.AlertDialog
+import android.app.DownloadManager
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
 import android.view.View
@@ -89,6 +91,9 @@ class AdminViewActivity : BaseActivity<ActivityAdminViewBinding>() {
                 Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
             resultLauncher.launch(galleryIntent)
         }
+        binding!!.downloadImg.setOnClickListener{
+            downloadImage(imageUrlAtIndex.toString())
+        }
     }
 
     private fun uploadImageToFirebaseStorage(imageUri: Uri) {
@@ -113,7 +118,29 @@ class AdminViewActivity : BaseActivity<ActivityAdminViewBinding>() {
             }
         }
     }
+    private fun deleteImageByStorrage(imageUrlToDelete: String) {
+        val storageRef = FirebaseStorage.getInstance().reference
 
+        // Create a StorageReference using the image URL's lastPathSegment as the image name
+        val imageName = Uri.parse(imageUrlToDelete).lastPathSegment
+
+
+        Log.d("FILE NAME",imageName.toString())
+        val imageRef = storageRef.child(imageName.toString())
+
+        // Delete the image from Firebase Storage
+        imageRef.delete()
+            .addOnSuccessListener {
+                // Image deleted successfully from Storage, now delete metadata from Database
+//                Toast.makeText(act, "Successfully Storage", Toast.LENGTH_SHORT).show()
+                deleteImageByUrl(imageUrlToDelete)
+            }
+            .addOnFailureListener {
+//                Toast.makeText(act, "UNNNSuccessfully Storage ", Toast.LENGTH_SHORT).show()
+                Log.d("ERROOOOOOOO",it.message.toString())
+                // Handle delete failure
+            }
+    }
     private fun saveImageMetadataToDatabase(imageUrl: String) {
         val userId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
         val imageKey = databaseReference.child("images").push().key
@@ -207,10 +234,8 @@ class AdminViewActivity : BaseActivity<ActivityAdminViewBinding>() {
         }
         if (currentImageIndex <= imageUrls.size - 1) {
             displayImage(currentImageIndex + 1)
-
             Log.d("CURRENT INDEX", currentImageIndex.toString())
-            binding!!.upImage.text = currentImageIndex.toString()
-
+//            binding!!.upImage.text = currentImageIndex.toString()
         }
 
     }
@@ -219,7 +244,7 @@ class AdminViewActivity : BaseActivity<ActivityAdminViewBinding>() {
         if (currentImageIndex >= 0) {
             displayImage(currentImageIndex - 1)
             Log.d("CURRENT INDEX", currentImageIndex.toString())
-            binding!!.upImage.text = currentImageIndex.toString()
+//            binding!!.upImage.text = currentImageIndex.toString()
         }
     }
 
@@ -251,10 +276,9 @@ class AdminViewActivity : BaseActivity<ActivityAdminViewBinding>() {
         alertDialogBuilder.setMessage("Are you sure you want to delete this image ?")
         alertDialogBuilder.setPositiveButton("OK") { dialog, _ ->
             // User clicked OK, proceed with deletion
-            deleteImageByUrl(imageUrlToDelete)
+            deleteImageByStorrage(imageUrlToDelete)
             displayImage(this.currentImageIndex)
             dialog.dismiss()
-            recreate()
 //            currentImageIndex -= 1
         }
         alertDialogBuilder.setNegativeButton("Cancel") { dialog, _ ->
@@ -306,12 +330,12 @@ class AdminViewActivity : BaseActivity<ActivityAdminViewBinding>() {
                         if (imageUrl == x) { // Compare with the image URL to delete
                             imageSnapshot.ref.removeValue()
                                 .addOnSuccessListener {
-                                    Toast.makeText(act, "Successfully deleted image from Firebase Realtime Database", Toast.LENGTH_SHORT).show()
+//                                    Toast.makeText(act, "Successfully deleted image from Firebase Realtime Database", Toast.LENGTH_SHORT).show()
                                     recreate()
                                     // Image metadata deleted from Database
                                 }
                                 .addOnFailureListener {
-                                    Toast.makeText(act, "Failed to delete image from Firebase Realtime Database", Toast.LENGTH_SHORT).show()
+//                                    Toast.makeText(act, "Failed to delete image from Firebase Realtime Database", Toast.LENGTH_SHORT).show()
                                     // Handle Database deletion failure
                                 }
                             return // Exit the loop once the image is found and deleted
@@ -324,5 +348,12 @@ class AdminViewActivity : BaseActivity<ActivityAdminViewBinding>() {
                 // Handle database error
             }
         })
+    }
+    private fun downloadImage(imageUrl: String) {
+        val request = DownloadManager.Request(Uri.parse(imageUrl))
+            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+            .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "downloaded_image.jpg")
+        val downloadManager = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+        downloadManager.enqueue(request)
     }
 }

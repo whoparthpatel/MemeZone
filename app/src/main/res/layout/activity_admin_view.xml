@@ -6,6 +6,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:layout_marginTop="@dimen/_25sdp"
     tools:context=".activitys.AdminViewActivity"
     tools:ignore="UselessLeaf">
 
@@ -19,43 +20,59 @@
         android:id="@+id/share_img"
         android:layout_width="@dimen/_22sdp"
         android:layout_height="@dimen/_22sdp"
-        android:layout_marginTop="56dp"
+        android:layout_marginTop="52dp"
         android:src="@drawable/share"
         app:layout_constraintHorizontal_bias="0.937"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="ContentDescription" />
 
     <ImageView
         android:id="@+id/delete_img"
         android:layout_width="@dimen/_22sdp"
         android:layout_height="@dimen/_22sdp"
-        android:layout_marginTop="108dp"
+        android:layout_marginTop="140dp"
         android:src="@drawable/deleteicon"
-        app:layout_constraintHorizontal_bias="0.939"
+        app:layout_constraintHorizontal_bias="0.934"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="ContentDescription" />
+
+
+    <ImageView
+        android:id="@+id/download_img"
+        android:layout_width="@dimen/_22sdp"
+        android:layout_height="@dimen/_22sdp"
+        android:layout_marginTop="96dp"
+        android:src="@drawable/baseline_cloud_download_24"
+        app:layout_constraintHorizontal_bias="0.937"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="ContentDescription" />
 
     <ImageView
         android:id="@+id/up_image_save"
         android:layout_width="@dimen/_250sdp"
         android:layout_height="@dimen/_250sdp"
-        android:layout_marginTop="164dp"
+        android:layout_marginTop="200dp"
         android:src="@drawable/noresult"
-        app:layout_constraintHorizontal_bias="0.496"
+        android:visibility="gone"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        android:visibility="gone"
         tools:ignore="ContentDescription" />
-
 
     <include
         android:id="@+id/custome_loader"
+        android:visibility="gone"
         layout="@layout/loading"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        tools:layout_editor_absoluteX="0dp"
+        tools:layout_editor_absoluteY="0dp" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/next_img"
