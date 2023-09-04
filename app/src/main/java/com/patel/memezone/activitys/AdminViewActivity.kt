@@ -5,7 +5,6 @@ import android.app.AlertDialog
 import android.app.DownloadManager
 import android.content.Context
 import android.content.Intent
-import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
@@ -17,12 +16,7 @@ import android.view.View
 import android.view.ViewTreeObserver
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.content.FileProvider
 import com.bumptech.glide.Glide
-import com.bumptech.glide.load.DataSource
-import com.bumptech.glide.load.engine.GlideException
-import com.bumptech.glide.request.RequestListener
-import com.bumptech.glide.request.RequestOptions
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -50,7 +44,7 @@ class AdminViewActivity : BaseActivity<ActivityAdminViewBinding>() {
     }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
+//        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
         databaseReference = FirebaseDatabase.getInstance().reference
         imagesReference = databaseReference.child("users").child("images")
         imageUrls = ArrayList()
@@ -59,6 +53,7 @@ class AdminViewActivity : BaseActivity<ActivityAdminViewBinding>() {
     }
     fun init() {
         retrieveImagesAndDisplay()
+
         Log.d("CURRENT INDEX", currentImageIndex.toString())
         binding!!.customeToolbar.backBtn.visibility = android.view.View.GONE
         val sharedPref = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
@@ -112,7 +107,15 @@ class AdminViewActivity : BaseActivity<ActivityAdminViewBinding>() {
     }
 
     override fun onTouchEvent(motionEvent: MotionEvent): Boolean {
+        binding!!.prvImg.visibility =  View.GONE
+        binding!!.upImage.visibility = View.GONE
+        binding!!.nextImg.visibility = View.GONE
         mScaleGestureDetector.onTouchEvent(motionEvent)
+        if (mScaleFactor <= 1.60f) {
+            binding!!.prvImg.visibility = View.VISIBLE
+            binding!!.upImage.visibility = View.VISIBLE
+            binding!!.nextImg.visibility = View.VISIBLE
+        }
         return true
     }
 
@@ -120,6 +123,7 @@ class AdminViewActivity : BaseActivity<ActivityAdminViewBinding>() {
         override fun onScale(scaleGestureDetector: ScaleGestureDetector): Boolean {
             mScaleFactor *= scaleGestureDetector.scaleFactor
             mScaleFactor = max(0.1f, min(mScaleFactor, 10.0f))
+            Log.d("ZOOMEFFECT",mScaleFactor.toString())
             binding!!.upImageSave.scaleX = mScaleFactor
             binding!!.upImageSave.scaleY = mScaleFactor
             return true
