@@ -53,7 +53,6 @@ class AdminViewActivity : BaseActivity<ActivityAdminViewBinding>() {
     }
     fun init() {
         retrieveImagesAndDisplay()
-
         Log.d("CURRENT INDEX", currentImageIndex.toString())
         binding!!.customeToolbar.backBtn.visibility = android.view.View.GONE
         val sharedPref = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
